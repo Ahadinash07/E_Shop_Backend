@@ -290,7 +290,7 @@ const verifyOtpController = (req, res) => {
     }
 
     const token = jwt.sign({ user_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    const refreshToken = jwt.sign({ user_id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+    const refreshToken = jwt.sign({ user_id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '30d' });
     console.log(`[${new Date().toISOString()}] Tokens generated:`, { token, refreshToken });
 
     otpStore.delete(email);
@@ -357,7 +357,7 @@ const loginController = (req, res) => {
           return res.status(500).json({ message: 'Error updating status' });
         }
 
-        const token = jwt.sign({ user_id: user.user_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ user_id: user.user_id }, process.env.JWT_SECRET, { expiresIn: '30d' });
         const refreshToken = jwt.sign({ user_id: user.user_id }, process.env.JWT_REFRESH_SECRET, {
           expiresIn: '7d',
         });
@@ -426,9 +426,9 @@ const loginOtpController = (req, res) => {
         return res.status(500).json({ message: 'Error updating status' });
       }
 
-      const token = jwt.sign({ user_id: user.user_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      const token = jwt.sign({ user_id: user.user_id }, process.env.JWT_SECRET, { expiresIn: '30d' });
       const refreshToken = jwt.sign({ user_id: user.user_id }, process.env.JWT_REFRESH_SECRET, {
-        expiresIn: '7d',
+        expiresIn: '30d',
       });
       console.log(`[${new Date().toISOString()}] OTP login tokens generated:`, { token, refreshToken });
 
@@ -502,7 +502,7 @@ const refreshTokenController = (req, res) => {
     console.log(`[${new Date().toISOString()}] Refresh token decoded:`, decoded);
 
     const newAccessToken = jwt.sign({ user_id: decoded.user_id }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
+      expiresIn: '30d',
     });
     console.log(`[${new Date().toISOString()}] New access token generated:`, newAccessToken);
 

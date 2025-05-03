@@ -233,8 +233,19 @@ const getOrders = (req, res) => {
   const userId = req.userId;
 
   const query = `
-    SELECT o.order_id, o.total_amount, o.payment_method, o.payment_status, o.order_status, o.created_at,
-           a.address_line, a.city, a.state, a.country, a.zip_code, a.phone
+    SELECT 
+      o.order_id, 
+      CAST(o.total_amount AS DECIMAL(10,2)) as total_amount,
+      o.payment_method, 
+      o.payment_status, 
+      o.order_status, 
+      o.created_at,
+      a.address_line, 
+      a.city, 
+      a.state, 
+      a.country, 
+      a.zip_code, 
+      a.phone
     FROM orders o
     JOIN addresses a ON o.address_id = a.address_id
     WHERE o.user_id = ?
@@ -253,9 +264,165 @@ const getOrders = (req, res) => {
   });
 };
 
+
+const getOrderDetails = async (req, res) => {
+  const { order_id } = req.params;
+  const userId = req.userId;
+
+  try {
+    // Get order details
+    const orderQuery = `
+      SELECT o.*, a.address_line, a.city, a.state, a.country, a.zip_code, a.phone
+      FROM orders o
+      JOIN addresses a ON o.address_id = a.address_id
+      WHERE o.order_id = ? AND o.user_id = ?
+    `;
+    
+    const orderItemsQuery = `
+      SELECT 
+        oi.*, 
+        p.productName, 
+        p.images, 
+        p.description,
+        CAST(oi.price AS DECIMAL(10,2)) as price
+      FROM order_items oi
+      JOIN product p ON oi.product_id = p.productId
+      WHERE oi.order_id = ?
+    `;
+    
+    const trackingQuery = `
+      SELECT * FROM order_tracking
+      WHERE order_id = ?
+      ORDER BY update_time DESC
+    `;
+
+    const [order, items, tracking] = await Promise.all([
+      new Promise((resolve, reject) => {
+        db.query(orderQuery, [order_id, userId], (err, results) => {
+          if (err) reject(err);
+          else resolve(results[0]);
+        });
+      }),
+      new Promise((resolve, reject) => {
+        db.query(orderItemsQuery, [order_id], (err, results) => {
+          if (err) reject(err);
+          else resolve(results);
+        });
+      }),
+      new Promise((resolve, reject) => {
+        db.query(trackingQuery, [order_id], (err, results) => {
+          if (err) reject(err);
+          else resolve(results);
+        });
+      })
+    ]);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    res.status(200).json({
+      message: 'Order details retrieved successfully',
+      order,
+      items,
+      tracking
+    });
+  } catch (error) {
+    console.error('Error fetching order details:', error);
+    res.status(500).json({ message: 'Failed to fetch order details' });
+  }
+};
+
+const cancelOrder = async (req, res) => {
+  const { order_id } = req.params;
+  const userId = req.userId;
+
+  try {
+    // Check if order exists and belongs to user
+    const checkQuery = 'SELECT order_status FROM orders WHERE order_id = ? AND user_id = ?';
+    db.query(checkQuery, [order_id, userId], (err, results) => {
+      if (err) {
+        console.error('Database error checking order:', err);
+        return res.status(500).json({ message: 'Server error' });
+      }
+      
+      if (results.length === 0) {
+        return res.status(404).json({ message: 'Order not found' });
+      }
+
+      const order = results[0];
+      
+      // Only allow cancellation if order is pending or confirmed
+      if (!['Pending', 'Confirmed'].includes(order.order_status)) {
+        return res.status(400).json({ 
+          message: `Order cannot be cancelled as it is already ${order.order_status}`
+        });
+      }
+
+      // Update order status
+      const updateOrderQuery = `
+        UPDATE orders 
+        SET order_status = 'Cancelled'
+        WHERE order_id = ?
+      `;
+      
+      // Add tracking record
+      const trackingId = uuidv4();
+      const insertTrackingQuery = `
+        INSERT INTO order_tracking (tracking_id, order_id, status, notes)
+        VALUES (?, ?, ?, ?)
+      `;
+
+      db.beginTransaction(err => {
+        if (err) {
+          console.error('Error starting transaction:', err);
+          return res.status(500).json({ message: 'Failed to cancel order' });
+        }
+
+        db.query(updateOrderQuery, [order_id], (err) => {
+          if (err) {
+            return db.rollback(() => {
+              console.error('Error updating order:', err);
+              res.status(500).json({ message: 'Failed to cancel order' });
+            });
+          }
+
+          db.query(insertTrackingQuery, 
+            [trackingId, order_id, 'Cancelled', 'Order cancelled by customer'],
+            (err) => {
+              if (err) {
+                return db.rollback(() => {
+                  console.error('Error adding tracking:', err);
+                  res.status(500).json({ message: 'Failed to cancel order' });
+                });
+              }
+
+              db.commit(err => {
+                if (err) {
+                  return db.rollback(() => {
+                    console.error('Error committing transaction:', err);
+                    res.status(500).json({ message: 'Failed to cancel order' });
+                  });
+                }
+
+                res.status(200).json({ message: 'Order cancelled successfully' });
+              });
+            }
+          );
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Error cancelling order:', error);
+    res.status(500).json({ message: 'Failed to cancel order' });
+  }
+};
+
 module.exports = {
   verifyToken,
   createOrder,
   verifyPayment,
   getOrders,
+  getOrderDetails,
+  cancelOrder
 };
