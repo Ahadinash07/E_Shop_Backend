@@ -18,7 +18,9 @@ const AddressRoute = require('./Routes/AddressRoute/AddressRoute');
 
 const app = express();
 env.config();
-app.use(cors());
+app.use(cors({
+    origin: "https://xecommfrontend-production.up.railway.app"
+}));
 app.use(express.json());
 
 const PORT = process.env.SERVER_PORT;
