@@ -21,7 +21,9 @@ const AdminProductRoute = require('./Routes/adminUserRegistrationRoute/ProductRo
 
 const app = express();
 env.config();
-app.use(cors());
+app.use(cors({
+    origin: ["https://eshopadminfrontend.netlify.app"]
+}));
 app.use(express.json());
 
 const PORT = process.env.SERVER_PORT;
