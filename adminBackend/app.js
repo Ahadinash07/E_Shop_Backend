@@ -22,7 +22,7 @@ const AdminProductRoute = require('./Routes/adminUserRegistrationRoute/ProductRo
 const app = express();
 env.config();
 app.use(cors({
-    origin: ["https://eshopadminfrontend.netlify.app"]
+    origin: ["https://e-shop-admin-frontend.vercel.app"]
 }));
 app.use(express.json());
 
