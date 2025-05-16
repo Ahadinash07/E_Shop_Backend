@@ -15,12 +15,13 @@ const UserRoute = require('./Routes/UserRoute/UserRoute');
 const CartRoute = require('./Routes/CartRoute/CartRoute');
 const OrderRoute = require('./Routes/OrderRoutes/OrderRoutes');
 const AddressRoute = require('./Routes/AddressRoute/AddressRoute');
+const AdminRetailerRoute = require('./Routes/adminUserRegistrationRoute/RetailerRoute');
+const AdminUserRoute = require('./Routes/adminUserRegistrationRoute/CustomerRoute');
+const AdminProductRoute = require('./Routes/adminUserRegistrationRoute/ProductRoute');
 
 const app = express();
 env.config();
-app.use(cors({
-    origin: "https://xecommfrontend-production.up.railway.app"
-}));
+app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.SERVER_PORT;
@@ -38,6 +39,12 @@ app.use('/api', CategoryRoute);
 app.use('/api', SubCategoryRoute);
 
 app.use('/', RetailerregisterRoute);
+
+app.use('/', AdminRetailerRoute);
+
+app.use('/', AdminUserRoute);
+
+app.use('/', AdminProductRoute);
 
 app.use('/', RetailerProfileRoute);
 
