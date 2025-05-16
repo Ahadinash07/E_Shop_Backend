@@ -1,7 +1,7 @@
 const db = require('../../Models/db');
 
 const GetSubCategory =(req, res) => {
-    const sqlQuery = `SELECT * FROM SubCategory`;
+    const sqlQuery = `SELECT * FROM subcategory`;
     db.query(sqlQuery, (err, result) => {
         if (err) {
             res.status(400).json({ message: "Error Occurred", error: err });
@@ -13,7 +13,7 @@ const GetSubCategory =(req, res) => {
 
 const GetSubCategoryById = (req, res) => { 
     const id = req.params.subCatId;
-    const sqlQuery = `SELECT * FROM SubCategory WHERE subCatId = ?`;
+    const sqlQuery = `SELECT * FROM subcategory WHERE subCatId = ?`;
     db.query(sqlQuery,id, (err, result) => {
         if (err) {
             res.json({ message: "Error Occurred", error: err });
@@ -25,7 +25,7 @@ const GetSubCategoryById = (req, res) => {
 
 const CreateSubCategory = (req, res) => {
     const { subCatId, subCatName, catId } = req.body;
-    const sqlQuery = `INSERT INTO SubCategory (subCatId, subCatName, catId) VALUES (UUID(), ?, ? )`;
+    const sqlQuery = `INSERT INTO subcategory (subCatId, subCatName, catId) VALUES (UUID(), ?, ? )`;
     db.query(sqlQuery,[subCatName, catId], (err, result) => {
         if (err) {
             res.status(400).json({ message: "Error Occurred", error: err });
@@ -38,7 +38,7 @@ const CreateSubCategory = (req, res) => {
 const UpdateSubCategory = (req, res) => {
     const id = req.params.subCatId;
     const { subCatId, subCatName, catId } = req.body;
-    const sqlQuery = `UPDATE SubCategory SET subCatName = ?, catId = ? WHERE subCatId = ?`;
+    const sqlQuery = `UPDATE subcategory SET subCatName = ?, catId = ? WHERE subCatId = ?`;
     db.query(sqlQuery, [subCatName, catId, id], (err, result) => {
         if (err) {
             res.status(400).json({ message: "Error Occurred", error: err });
@@ -50,7 +50,7 @@ const UpdateSubCategory = (req, res) => {
 
 const DeleteSubCategory = (req, res) => {
     const id = req.params.subCatId;
-    const sqlQuery = `DELETE FROM SubCategory WHERE subCatId = ?`;
+    const sqlQuery = `DELETE FROM subcategory WHERE subCatId = ?`;
     db.query(sqlQuery, id, (err, result) => {
         if (err) {
             res.status(400).json({ message: "Error Occurred", error: err });
