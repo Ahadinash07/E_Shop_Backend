@@ -22,7 +22,7 @@ const AdminProductRoute = require('./Routes/adminUserRegistrationRoute/ProductRo
 const app = express();
 env.config();
 app.use(cors({
-    origin: ["https://main.d1nsaceidu9qim.amplifyapp.com"]
+    origin: ["https://main.d1nsaceidu9qim.amplifyapp.com", "https://main.dhvadozona3q3.amplifyapp.com"]
 }));
 app.use(express.json());
 
