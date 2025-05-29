@@ -18,7 +18,6 @@ const AddressRoute = require('./Routes/AddressRoute/AddressRoute');
 const AdminRetailerRoute = require('./Routes/adminUserRegistrationRoute/RetailerRoute');
 const AdminUserRoute = require('./Routes/adminUserRegistrationRoute/CustomerRoute');
 const AdminProductRoute = require('./Routes/adminUserRegistrationRoute/ProductRoute');
-const ProductRecommendationRoute = require('./Routes/ProductRoute/ProductRecommendationRoute');
 
 const app = express();
 env.config();
@@ -48,8 +47,6 @@ app.use('/', AdminRetailerRoute);
 app.use('/', AdminUserRoute);
 
 app.use('/', AdminProductRoute);
-
-app.use('/api', ProductRecommendationRoute);
 
 app.use('/', RetailerProfileRoute);
 
